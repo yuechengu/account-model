@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.learning.mapper.UtxoMapper">
+
+    <select id="queryUtxoList" resultType="Utxo">
+        select * from db02_utxo;
+    </select>
+
+    <select id="queryUtxoById" resultType="Utxo">
+        select * from db02_utxo where transaction_id = #{transactionId};
+    </select>
+
+    <insert id="addUtxo" parameterType="Utxo">
+        insert into db02_utxo (transaction_id, utxo_id, sub_transaction, amount, destination_account_id, transaction_time, hash)
+        values (#{transactionId}, #{utxoId}, #{subTransaction}, #{amount}, #{destinationAccountId}, #{transactionTime}, #{hash})
+    </insert>
+
+    <delete id="deleteUtxo" parameterType="String">
+        delete from db02_utxo where transaction_id=#{transactionId}
+    </delete>
+</mapper>

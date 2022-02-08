@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.learning.mapper.AccountMapper">
+
+    <select id="queryAccountList" resultType="Account">
+        select * from db01_account;
+    </select>
+
+    <select id="queryAccountById" resultType="Account">
+        select * from db01_account where account_id = #{accountId};
+    </select>
+
+    <insert id="addAccount" parameterType="Account">
+        insert into db01_account (account_id, balance, account_type, status, created_time, expired_time)
+        values (#{accountId}, #{balance}, #{accountType}, #{status}, #{createdTime}, #{expiredTime})
+    </insert>
+
+    <update id="updateAccount" parameterType="Account">
+        update db01_account
+        set balance=#{balance}, account_type=#{accountType}, status=#{status}, created_time=#{createdTime}, expired_time=#{expiredTime}
+        where account_id=#{accountId}
+    </update>
+
+    <delete id="deleteAccount" parameterType="String">
+        delete from db01_account where account_id=#{accountId}
+    </delete>
+</mapper>
