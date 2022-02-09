@@ -14,7 +14,10 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 @SpringBootTest
@@ -36,15 +39,20 @@ class AccountModelApplicationTests {
 
     @Autowired
     AccountMapper accountMapper;
+    // ※新增账户
     @Test
-    void accountMapperTest() {
-        accountMapper.addAccount(new Account("张三", new BigDecimal(0), "currency", 1, new Date(), null));
-        accountMapper.addAccount(new Account("李四", new BigDecimal(0), "currency", 1, new Date(), null));
-        accountMapper.addAccount(new Account("王五", new BigDecimal(0), "currency", 1, new Date(), null));
+    void accountMapperAddTest() {
+        Date date = new Date();
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        calendar.add(calendar.DATE, 365);
+
+        accountMapper.addAccount(new Account("覃老师", new BigDecimal(0), "currency", 1, date, calendar.getTime()));
     }
 
     @Autowired
     UtxoMapper utxoMapper;
+    // 登录奖励记账
     @Test
     void utxoMapperAddTest() {
         String hashTest001 = Hashing.sha256().hashString("testing", StandardCharsets.UTF_8).toString();
@@ -55,34 +63,41 @@ class AccountModelApplicationTests {
         utxoMapper.addUtxo(new Utxo("#2001", "#1001-1", "2", new BigDecimal("10"), "张三", new Date(),hashTest002));
     }
 
+    // 删记录
     @Test
     void utxoMapperDeleteTest() {
-        utxoMapper.deleteUtxo("#1001");
-        utxoMapper.deleteUtxo("#2001");
+        //utxoMapper.deleteUtxo("2022020821291475345580072378799");
+    }
+
+    // 删账户
+    @Test
+    void accountMapperDeleteTest() {
+        //accountMapper.deleteAccount("张三");
     }
 
     @Autowired
     ServiceController serviceController;
 
-    // 初次登录
+    // ※初次登录奖励
     @Test
-    void transferServiceTest001() {
+    void transferServiceTest001() throws ParseException {
         HashMap<String, Object> testMap = new HashMap<>();
-        testMap.put("origin-accountId", "张三");
-        testMap.put("destination-accountId", "张三");
-        testMap.put("trasaction-type", "currency");
-        testMap.put("amount", "10");
+        testMap.put("origin-accountId", "覃老师");
+        testMap.put("destination-accountId", "覃老师");
+        testMap.put("transaction-type", "currency");
+        testMap.put("amount", "250");
         serviceController.transfer(testMap);
     }
 
-    // 转账
+    // ※一对一转账
     @Test
-    void transferServiceTest002() {
+    void transferServiceTest002() throws ParseException {
         HashMap<String, Object> testMap = new HashMap<>();
-        testMap.put("origin-accountId", "张三");
-        testMap.put("destination-accountId", "李四");
-        testMap.put("trasaction-type", "currency");
-        testMap.put("amount", "2");
+        testMap.put("origin-accountId", "覃老师");
+        testMap.put("destination-accountId", "孙文力");
+        testMap.put("transaction-type", "currency");
+        testMap.put("amount", "200");
+        serviceController.transfer(testMap);
     }
 
 

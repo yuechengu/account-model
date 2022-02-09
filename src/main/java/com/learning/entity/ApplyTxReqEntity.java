@@ -9,8 +9,8 @@ public class ApplyTxReqEntity {
     @JsonProperty(value = "destination-accountId")
     private String destinationAccountId;
 
-    @JsonProperty(value = "trasaction-type")
-    private String trasactionType;
+    @JsonProperty(value = "transaction-type")
+    private String transactionType;
 
     private String amount;
 
@@ -30,12 +30,12 @@ public class ApplyTxReqEntity {
         this.destinationAccountId = destinationAccountId;
     }
 
-    public String getTrasactionType() {
-        return trasactionType;
+    public String getTransactionType() {
+        return transactionType;
     }
 
-    public void setTrasactionType(String trasactionType) {
-        this.trasactionType = trasactionType;
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public String getAmount() {

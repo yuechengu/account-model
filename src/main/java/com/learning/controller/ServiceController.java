@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,10 +36,10 @@ public class ServiceController {
 
     @RequestMapping("/transfer")
     @ResponseStatus(HttpStatus.OK)
-    public ApplyTxResEntity transfer(@RequestBody Map<String, Object> map) {
+    public ApplyTxResEntity transfer(@RequestBody Map<String, Object> map) throws ParseException {
         String originAccountId = (String) map.get("origin-accountId");
         String destinationAccountId = (String) map.get("destination-accountId");
-        String trasactionType = (String) map.get("trasaction-type");
+        String trasactionType = (String) map.get("transaction-type");
         String amount = (String) map.get("amount");
 
         ApplyTxResEntity result = transferService.transfer(originAccountId, destinationAccountId, trasactionType, amount);

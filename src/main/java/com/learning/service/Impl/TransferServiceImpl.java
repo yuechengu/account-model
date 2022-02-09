@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -25,7 +26,7 @@ public class TransferServiceImpl implements TransferService {
     UtxoMapper utxoMapper;
 
     @Override
-    public ApplyTxResEntity transfer(String originAccountId, String destinationAccountId, String trasactionType, String amount) {
+    public ApplyTxResEntity transfer(String originAccountId, String destinationAccountId, String transactionType, String amount) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
         BigDecimal txAmount = new BigDecimal(amount);
@@ -43,7 +44,9 @@ public class TransferServiceImpl implements TransferService {
         BigDecimal destinationAccountBalance = destinationAccount.getBalance();
 
         // 第一种情况：初次登录奖励
-        if (originAccountId == destinationAccountId && txAmount.compareTo(BigDecimal.ZERO) == 1) {
+        if (transactionType == "currency"
+                && originAccountId == destinationAccountId
+                && txAmount.compareTo(BigDecimal.ZERO) == 1) {
             // 开始交易
             originAccountBalance = originAccountBalance.add(new BigDecimal(amount));
             txTime = formatter.format(new Date());
@@ -56,7 +59,7 @@ public class TransferServiceImpl implements TransferService {
             utxo1.setSubTransaction(String.valueOf(initSubTx++));
             utxo1.setAmount(new BigDecimal(amount));
             utxo1.setDestinationAccountId(destinationAccountId);
-            utxo1.setTransactionTime(new Date());
+            utxo1.setTransactionTime(formatter.parse(txTime));
             // 记账用Hashcode生成
             txHashCode = Hashing.sha256().hashString(
                     utxo1.getTransactionId()
@@ -71,14 +74,16 @@ public class TransferServiceImpl implements TransferService {
             // response返回结果
             return new ApplyTxResEntity("OK", txTime, txHashCode);
 
-        } else if (trasactionType == "currency" && txAmount.compareTo(BigDecimal.ZERO) == 1) {// 另一种情况：转账
-            if (originAccountBalance.compareTo(new BigDecimal(amount)) < 0) {
+        } else if (transactionType == "currency"
+                && originAccountId != destinationAccountId
+                && txAmount.compareTo(BigDecimal.ZERO) == 1) {// 另一种情况：转账
+            if (originAccountBalance.compareTo(new BigDecimal(amount)) == -1) {
                 txTime = formatter.format(new Date());
                 return new ApplyTxResEntity("NG", txTime, "余额不足");
             }
             // 开始正常交易
-            destinationAccountBalance = destinationAccountBalance.subtract(new BigDecimal(amount));
-            originAccountBalance = originAccountBalance.add(new BigDecimal(amount));
+            originAccountBalance = originAccountBalance.subtract(new BigDecimal(amount));
+            destinationAccountBalance = destinationAccountBalance.add(new BigDecimal(amount));
             txTime = formatter.format(new Date());
             // 更新账户
             originAccount.setBalance(originAccountBalance);
@@ -91,7 +96,7 @@ public class TransferServiceImpl implements TransferService {
             utxo1.setSubTransaction(String.valueOf(initSubTx++));
             utxo1.setAmount(new BigDecimal(amount));
             utxo1.setDestinationAccountId(destinationAccountId);
-            utxo1.setTransactionTime(new Date());
+            utxo1.setTransactionTime(formatter.parse(txTime));
             // 记账用Hashcode生成
             txHashCode = Hashing.sha256().hashString(
                     utxo1.getTransactionId()
@@ -107,7 +112,7 @@ public class TransferServiceImpl implements TransferService {
             utxo2.setTransactionId(utxo1.getTransactionId());
             utxo2.setUtxoId(utxo1.getUtxoId());
             utxo2.setSubTransaction(String.valueOf(initSubTx++));
-            utxo2.setAmount(originAccountBalance.subtract(new BigDecimal(amount)));
+            utxo2.setAmount(originAccountBalance);
             utxo2.setDestinationAccountId(originAccountId);
             utxo2.setTransactionTime(new Date());
             // 记账用Hashcode生成
@@ -119,7 +124,7 @@ public class TransferServiceImpl implements TransferService {
                             .concat(originAccountId)
                             .concat(txTime)
                     , StandardCharsets.UTF_8).toString();
-            utxo1.setHash(txHashCode);
+            utxo2.setHash(txHashCode);
             utxoMapper.addUtxo(utxo2);
 
             return new ApplyTxResEntity("OK", txTime, txHashCode);
