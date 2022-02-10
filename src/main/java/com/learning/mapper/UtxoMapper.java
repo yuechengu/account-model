@@ -19,4 +19,6 @@ public interface UtxoMapper {
     int updateUtxo(Utxo utxo);
 
     int deleteUtxo(String id);
+
+    int queryUxtosNumber();
 }

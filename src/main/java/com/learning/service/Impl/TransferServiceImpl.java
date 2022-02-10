@@ -32,7 +32,7 @@ public class TransferServiceImpl implements TransferService {
         BigDecimal txAmount = new BigDecimal(amount);
         String txTime;
         String txHashCode;
-        Utxo utxo1 = new Utxo(); // ※初次登录时，只可能存在一条记录
+        Utxo utxo1 = new Utxo(); // ※初次登录，交易额==原始账户余额：只可能存在一条记录
         Utxo utxo2 = new Utxo();
         int initSubTx = 1; // 初始子交易顺序
 
@@ -54,14 +54,14 @@ public class TransferServiceImpl implements TransferService {
             originAccount.setBalance(originAccountBalance);
             accountMapper.updateAccount(originAccount);
             // 开始记账
-            utxo1.setTransactionId(OrderUtils.getOrderCode(originAccountId.hashCode()));
+            utxo1.setTransactionId(OrderUtils.getOrderCode(utxoMapper.queryUxtosNumber()));
             utxo1.setUtxoId("初次登录游戏奖励");
             utxo1.setSubTransaction(String.valueOf(initSubTx++));
             utxo1.setAmount(new BigDecimal(amount));
             utxo1.setDestinationAccountId(destinationAccountId);
             utxo1.setTransactionTime(formatter.parse(txTime));
             // 记账用Hashcode生成
-            txHashCode = Hashing.sha256().hashString(
+            txHashCode = Hashing.sha1().hashString(
                     utxo1.getTransactionId()
                             .concat(utxo1.getUtxoId())
                             .concat(utxo1.getSubTransaction())
@@ -91,14 +91,14 @@ public class TransferServiceImpl implements TransferService {
             accountMapper.updateAccount(originAccount);
             accountMapper.updateAccount(destinationAccount);
             // 开始记账：utxo1
-            utxo1.setTransactionId(OrderUtils.getOrderCode(originAccountId.hashCode()));
+            utxo1.setTransactionId(OrderUtils.getOrderCode(utxoMapper.queryUxtosNumber()));
             utxo1.setUtxoId("");//※这里题目有逻辑上的缺陷
             utxo1.setSubTransaction(String.valueOf(initSubTx++));
             utxo1.setAmount(new BigDecimal(amount));
             utxo1.setDestinationAccountId(destinationAccountId);
             utxo1.setTransactionTime(formatter.parse(txTime));
             // 记账用Hashcode生成
-            txHashCode = Hashing.sha256().hashString(
+            txHashCode = Hashing.sha1().hashString(
                     utxo1.getTransactionId()
                             .concat(utxo1.getUtxoId())
                             .concat(utxo1.getSubTransaction())
@@ -108,27 +108,30 @@ public class TransferServiceImpl implements TransferService {
                     , StandardCharsets.UTF_8).toString();
             utxo1.setHash(txHashCode);
             utxoMapper.addUtxo(utxo1);
-            // 开始记账：utxo2
-            utxo2.setTransactionId(utxo1.getTransactionId());
-            utxo2.setUtxoId(utxo1.getUtxoId());
-            utxo2.setSubTransaction(String.valueOf(initSubTx++));
-            utxo2.setAmount(originAccountBalance);
-            utxo2.setDestinationAccountId(originAccountId);
-            utxo2.setTransactionTime(new Date());
-            // 记账用Hashcode生成
-            txHashCode = Hashing.sha256().hashString(
-                    utxo2.getTransactionId()
-                            .concat(utxo2.getUtxoId())
-                            .concat(utxo2.getSubTransaction())
-                            .concat(utxo2.getAmount().toString())
-                            .concat(originAccountId)
-                            .concat(txTime)
-                    , StandardCharsets.UTF_8).toString();
-            utxo2.setHash(txHashCode);
-            utxoMapper.addUtxo(utxo2);
-
+            if (originAccountBalance.compareTo(BigDecimal.ZERO) == 1) {
+                // 开始记账：utxo2
+                utxo2.setTransactionId(utxo1.getTransactionId());
+                utxo2.setUtxoId(utxo1.getUtxoId());
+                utxo2.setSubTransaction(String.valueOf(initSubTx++));
+                utxo2.setAmount(originAccountBalance);
+                utxo2.setDestinationAccountId(originAccountId);
+                utxo2.setTransactionTime(new Date());
+                // 记账用Hashcode生成
+                txHashCode = Hashing.sha1().hashString(
+                        utxo2.getTransactionId()
+                                .concat(utxo2.getUtxoId())
+                                .concat(utxo2.getSubTransaction())
+                                .concat(utxo2.getAmount().toString())
+                                .concat(originAccountId)
+                                .concat(txTime)
+                        , StandardCharsets.UTF_8).toString();
+                utxo2.setHash(txHashCode);
+                utxoMapper.addUtxo(utxo2);
+            }
             return new ApplyTxResEntity("OK", txTime, txHashCode);
         }
         return new ApplyTxResEntity("NG", formatter.format(new Date()), "非法交易");
     }
+
+
 }

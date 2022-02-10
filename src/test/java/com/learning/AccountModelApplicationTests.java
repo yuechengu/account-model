@@ -32,8 +32,20 @@ class AccountModelApplicationTests {
     }
 
     @Test
-    void hashTest() {
+    void sha256Test() {
         String hash = Hashing.sha256().hashString("testing", StandardCharsets.UTF_8).toString();
+        System.out.println(hash);
+    }
+
+    @Test
+    void sha1Test() {
+        String hash = Hashing.sha1().hashString("testing", StandardCharsets.UTF_8).toString();
+        System.out.println(hash);
+    }
+
+    @Test
+    void sipHash24Test() {
+        String hash = Hashing.sipHash24().hashString("testing", StandardCharsets.UTF_8).toString();
         System.out.println(hash);
     }
 
@@ -42,12 +54,14 @@ class AccountModelApplicationTests {
     // ※新增账户
     @Test
     void accountMapperAddTest() {
+        String hash = Hashing.sipHash24().hashString("guyuechen", StandardCharsets.UTF_8).toString();
+
         Date date = new Date();
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(date);
         calendar.add(calendar.DATE, 365);
 
-        accountMapper.addAccount(new Account("覃老师", new BigDecimal(0), "currency", 1, date, calendar.getTime()));
+        accountMapper.addAccount(new Account(hash, new BigDecimal(0), "currency", 1, date, calendar.getTime()));
     }
 
     @Autowired
@@ -66,26 +80,34 @@ class AccountModelApplicationTests {
     // 删记录
     @Test
     void utxoMapperDeleteTest() {
-        //utxoMapper.deleteUtxo("2022020821291475345580072378799");
+        utxoMapper.deleteUtxo("2022021011124365776153021692181");
+        utxoMapper.deleteUtxo("2022021011141322694959495018623");
+        utxoMapper.deleteUtxo("2022021011153394963211186085985");
+        utxoMapper.deleteUtxo("2022021011164389926683269544334");
+        utxoMapper.deleteUtxo("2022021011171265213782915379212");
+        utxoMapper.deleteUtxo("2022021011181585002118770091583");
+        utxoMapper.deleteUtxo("2022021011325048141067204333703");
     }
 
     // 删账户
     @Test
     void accountMapperDeleteTest() {
-        //accountMapper.deleteAccount("张三");
+        accountMapper.deleteAccount("59a89ac040cc96dc");
+        accountMapper.deleteAccount("692009411618094d");
+        accountMapper.deleteAccount("9a72565c525e7626");
     }
 
     @Autowired
     ServiceController serviceController;
 
-    // ※初次登录奖励
+    // ※铸币
     @Test
     void transferServiceTest001() throws ParseException {
         HashMap<String, Object> testMap = new HashMap<>();
-        testMap.put("origin-accountId", "覃老师");
-        testMap.put("destination-accountId", "覃老师");
+        testMap.put("origin-accountId", "59a89ac040cc96dc");
+        testMap.put("destination-accountId", "59a89ac040cc96dc");
         testMap.put("transaction-type", "currency");
-        testMap.put("amount", "250");
+        testMap.put("amount", "120");
         serviceController.transfer(testMap);
     }
 
@@ -93,10 +115,31 @@ class AccountModelApplicationTests {
     @Test
     void transferServiceTest002() throws ParseException {
         HashMap<String, Object> testMap = new HashMap<>();
-        testMap.put("origin-accountId", "覃老师");
-        testMap.put("destination-accountId", "孙文力");
+        testMap.put("origin-accountId", "08786156651e37c2");
+        testMap.put("destination-accountId", "937be13f4f3ada89");
         testMap.put("transaction-type", "currency");
-        testMap.put("amount", "200");
+        testMap.put("amount", "120");
+        serviceController.transfer(testMap);
+    }
+
+
+    // ※初次登录+奖励测试
+    @Test
+    void firstTimeLoginTest() throws ParseException {
+        String address = Hashing.sipHash24().hashString("acn", StandardCharsets.UTF_8).toString();
+
+        Date date = new Date();
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        calendar.add(calendar.DATE, 365);
+
+        accountMapper.addAccount(new Account(address, new BigDecimal(0), "currency", 1, date, calendar.getTime()));
+
+        HashMap<String, Object> testMap = new HashMap<>();
+        testMap.put("origin-accountId", address);
+        testMap.put("destination-accountId", address);
+        testMap.put("transaction-type", "currency");
+        testMap.put("amount", "500");
         serviceController.transfer(testMap);
     }
 
