@@ -23,10 +23,10 @@ public class ServiceController {
     @RequestMapping("/test")
     @ResponseStatus(HttpStatus.OK)
     public Map test() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, Object> result = new HashMap<>();
         String txResult = "OK";
-        String txTime = JsonUtils.getJson(new Date());
-        String txHashCode = "01x111111f";
+        Date txTime = new Date();
+        String txHashCode = "01abcdef";
 
         result.put("result", txResult);
         result.put("transaction-time", txTime);
@@ -39,10 +39,9 @@ public class ServiceController {
     public ApplyTxResEntity transfer(@RequestBody Map<String, Object> map) throws ParseException {
         String originAccountId = (String) map.get("origin-accountId");
         String destinationAccountId = (String) map.get("destination-accountId");
-        String trasactionType = (String) map.get("transaction-type");
+        String transactionType = (String) map.get("transaction-type");
         String amount = (String) map.get("amount");
 
-        ApplyTxResEntity result = transferService.transfer(originAccountId, destinationAccountId, trasactionType, amount);
-        return result;
+        return transferService.transfer(originAccountId, destinationAccountId, transactionType, amount);
     }
 }

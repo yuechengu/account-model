@@ -44,8 +44,8 @@ public class TransferServiceImpl implements TransferService {
         BigDecimal destinationAccountBalance = destinationAccount.getBalance();
 
         // 第一种情况：初次登录奖励
-        if (transactionType == "currency"
-                && originAccountId == destinationAccountId
+        if (transactionType.equals("currency")
+                && originAccountId.equals(destinationAccountId)
                 && txAmount.compareTo(BigDecimal.ZERO) == 1) {
             // 开始交易
             originAccountBalance = originAccountBalance.add(new BigDecimal(amount));
@@ -74,8 +74,8 @@ public class TransferServiceImpl implements TransferService {
             // response返回结果
             return new ApplyTxResEntity("OK", txTime, txHashCode);
 
-        } else if (transactionType == "currency"
-                && originAccountId != destinationAccountId
+        } else if (transactionType.equals("currency")
+                && !originAccountId.equals(destinationAccountId)
                 && txAmount.compareTo(BigDecimal.ZERO) == 1) {// 另一种情况：转账
             if (originAccountBalance.compareTo(new BigDecimal(amount)) == -1) {
                 txTime = formatter.format(new Date());
@@ -130,7 +130,7 @@ public class TransferServiceImpl implements TransferService {
             }
             return new ApplyTxResEntity("OK", txTime, txHashCode);
         }
-        return new ApplyTxResEntity("NG", formatter.format(new Date()), "非法交易");
+        return new ApplyTxResEntity("NG", formatter.format(new Date()), "交易失败");
     }
 
 
